@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f6f7f3">
+  <title>物流价表维护 - TikTok 售价计算器</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="shipping.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
+    <div>
+      <h1>物流价表维护</h1>
+      <p>管理计算器使用的跨境物流费</p>
+    </div>
+    <nav class="top-nav" aria-label="主要页面">
+      <a class="top-nav-link" href="index.html">售价计算</a>
+      <a class="top-nav-link is-active" href="shipping.html" aria-current="page">物流价表</a>
+      <a class="top-nav-link" href="guide.html">公式学习</a>
+      <a class="top-nav-link" href="solutions.html">设计与方案</a>
+    </nav>
+    <div class="save-state" id="storageState" aria-live="polite">正在读取</div>
+  </header>
+
+  <main class="shipping-shell">
+    <section class="shipping-section" aria-labelledby="statusTitle">
+      <div class="shipping-heading">
+        <div><span class="step">01</span><h2 id="statusTitle">当前价表</h2></div>
+      </div>
+      <div class="market-status-grid" id="marketStatusGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="shipping-section" aria-labelledby="limitTitle">
+      <div class="shipping-heading">
+        <div><span class="step">02</span><h2 id="limitTitle">计费范围</h2></div>
+      </div>
+      <div class="limit-settings">
+        <label class="field">
+          <span>市场</span>
+          <select id="settingsMarket"></select>
+        </label>
+        <label class="field">
+          <span>最大计费重</span>
+          <div class="input-with-unit"><input id="maxWeightSetting" type="number" min="0.01" step="0.01" inputmode="decimal"><span>kg</span></div>
+        </label>
+        <label class="field">
+          <span>最大体积 <small>0 = 不限制</small></span>
+          <div class="input-with-unit wide-unit"><input id="maxVolumeSetting" type="number" min="0" step="1" inputmode="decimal"><span>cm³</span></div>
+        </label>
+        <label class="field">
+          <span>体积重系数</span>
+          <div class="input-with-unit wide-unit"><input id="volumetricDivisorSetting" type="number" min="1" step="1" inputmode="decimal"><span>cm³/kg</span></div>
+        </label>
+        <button class="primary-action save-limit-button" id="saveLimitsButton" type="button">保存设置</button>
+      </div>
+      <p class="limit-note" id="limitNote" aria-live="polite"></p>
+    </section>
+
+    <section class="shipping-section import-section" aria-labelledby="importTitle">
+      <div class="shipping-heading">
+        <div><span class="step">03</span><h2 id="importTitle">导入更新</h2></div>
+        <a class="secondary-button button-link" href="shipping-price-template.xlsx" download="东南亚跨境物流运费价格表模板.xlsx">下载导入模板</a>
+      </div>
+
+      <div class="import-bar">
+        <input class="sr-only" id="excelFile" type="file" accept=".xlsx,.xls">
+        <button class="primary-action" id="chooseFileButton" type="button">选择 Excel</button>
+        <div class="import-file-state">
+          <strong id="selectedFileName">尚未选择文件</strong>
+          <span>支持 .xlsx 和 .xls，每个市场一个工作表</span>
+        </div>
+      </div>
+
+      <div class="import-message" id="importMessage" role="alert" hidden></div>
+
+      <div class="import-preview" id="importPreview" hidden>
+        <div class="preview-summary" id="previewSummary"></div>
+        <div class="table-scroll compact-preview">
+          <table>
+            <thead><tr><th>市场</th><th>重量上限</th><th>物流费</th><th>币种</th><th>生效日期</th></tr></thead>
+            <tbody id="previewRows"></tbody>
+          </table>
+        </div>
+        <div class="preview-actions">
+          <button class="text-button" id="cancelImportButton" type="button">取消</button>
+          <button class="primary-action" id="confirmImportButton" type="button">确认更新价表</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="shipping-section" aria-labelledby="viewerTitle">
+      <div class="shipping-heading viewer-heading">
+        <div><span class="step">04</span><h2 id="viewerTitle">价表明细</h2></div>
+        <button class="danger-button" id="restoreDefaultButton" type="button" disabled>移除导入价表</button>
+      </div>
+
+      <div class="viewer-controls">
+        <label class="field">
+          <span>市场</span>
+          <select id="marketFilter"></select>
+        </label>
+        <label class="field">
+          <span>查询重量</span>
+          <div class="input-with-unit"><input id="weightQuery" type="number" min="1" step="1" value="250" inputmode="numeric"><span>g</span></div>
+        </label>
+        <button class="secondary-button query-button" id="queryPriceButton" type="button">查询价格</button>
+        <output class="quote-result" id="quoteResult" aria-live="polite"></output>
+      </div>
+
+      <div class="table-meta">
+        <div><strong id="tableTitle">价表</strong><span id="tableSource"></span></div>
+        <span id="rowCount"></span>
+      </div>
+      <div class="table-scroll">
+        <table class="price-table">
+          <thead><tr><th>重量范围</th><th>重量上限(g)</th><th>物流费</th><th>币种</th><th>生效日期</th><th>备注</th></tr></thead>
+          <tbody id="priceRows"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button class="icon-page-button" id="previousPage" type="button" aria-label="上一页">‹</button>
+        <span id="pageState">第 1 页</span>
+        <button class="icon-page-button" id="nextPage" type="button" aria-label="下一页">›</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script src="shipping-store.js"></script>
+  <script src="shipping.js"></script>
+</body>
+</html>

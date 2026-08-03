@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f5f6f1">
+  <title>TikTok 售价工具设计与场景方案</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="solutions.css">
+</head>
+<body class="solutions-page">
+  <header class="app-header">
+    <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
+    <div>
+      <h1>TikTok 售价计算器</h1>
+      <p>把成本、费率和折扣一次算清</p>
+    </div>
+    <nav class="top-nav" aria-label="主要页面">
+      <a class="top-nav-link" href="index.html">售价计算</a>
+      <a class="top-nav-link" href="shipping.html">物流价表</a>
+      <a class="top-nav-link" href="guide.html">公式学习</a>
+      <a class="top-nav-link is-active" href="solutions.html" aria-current="page">设计与方案</a>
+    </nav>
+  </header>
+
+  <main class="solutions-shell">
+    <section class="solutions-intro" aria-labelledby="solutionsTitle">
+      <p class="solutions-kicker">工具背后的设计</p>
+      <h2 id="solutionsTitle">把“算出一个数”，变成“得到一个敢上架的价格”</h2>
+      <p>售价不是成本乘一个倍数。真正可用的结果必须同时处理币种、平台比例费、封顶费用、折扣反推、金额精度和数据来源。</p>
+
+      <div class="value-rails">
+        <div><span>01</span><strong>不漏成本</strong><p>固定成本、物流、按单费用和比例费用分开建模，减少少算与重复计算。</p></div>
+        <div><span>02</span><strong>不低估售价</strong><p>从目标利润率反推最低成交价，再向上取到币种最小单位。</p></div>
+        <div><span>03</span><strong>结果可追溯</strong><p>预设只负责起步，最终数据回到平台结算、真实账单和自己的经营报表。</p></div>
+      </div>
+    </section>
+
+    <section class="solutions-section" aria-labelledby="flowTitle">
+      <div class="solutions-heading"><span>工作流</span><div><h2 id="flowTitle">每个结果都经过五道处理</h2><p>这条链路是工具好用的核心，而不是页面上某一个输入框。</p></div></div>
+      <div class="pricing-flow" role="img" aria-label="真实成本经过币种统一、费率模型、折扣反推和安全取整后得到可上架价格">
+        <div><small>真实账单</small><strong>成本归集</strong><span>每批费用摊到单件</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>同一口径</small><strong>币种统一</strong><span>人民币换成销售币种</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>平台规则</small><strong>费用建模</strong><span>比例、固定、封顶分开</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>营销场景</small><strong>折扣反推</strong><span>先保住成交价再算原价</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>最终保护</small><strong>安全取整</strong><span>避免小数处理吃掉利润</span></div>
+      </div>
+    </section>
+
+    <section class="solutions-section" aria-labelledby="sceneTitle">
+      <div class="solutions-heading"><span>真实场景</span><div><h2 id="sceneTitle">常见问题如何落到工具里</h2><p>每个方案都对应一个容易被忽略的经营风险。</p></div></div>
+      <div class="scenario-list">
+        <article>
+          <div class="scenario-name"><span>场景 01</span><h3>目前只知道采购和货代成本</h3></div>
+          <div><small>容易出错</small><p>直接在成本上加利润，没有预留平台、广告和退货费用。</p></div>
+          <div><small>工具方案</small><p>先录入确定成本；市场预设提供平台费起点，未参加的项目填 0，未知损耗先保守预留，后续用真实数据替换。</p></div>
+        </article>
+        <article>
+          <div class="scenario-name"><span>场景 02</span><h3>上架后要做 50% 折扣</h3></div>
+          <div><small>容易出错</small><p>先算一个“看起来有利润”的原价，再直接打五折，折后可能已经亏损。</p></div>
+          <div><small>工具方案</small><p>先反推能覆盖全部成本和利润的折后成交价，再除以 50% 得到商品原价。折扣只改变展示原价，不牺牲目标成交价。</p></div>
+        </article>
+        <article>
+          <div class="scenario-name"><span>场景 03</span><h3>同一商品卖到多个国家</h3></div>
+          <div><small>容易出错</small><p>只换货币符号，没有同步汇率、物流档位、市场手续费和最小货币单位。</p></div>
+          <div><small>工具方案</small><p>市场预设同步币种与参考费率，双向汇率展示换算关系，结果同时给出当地币和人民币，便于横向比较。</p></div>
+        </article>
+        <article>
+          <div class="scenario-name"><span>场景 04</span><h3>平台项目费有封顶金额</h3></div>
+          <div><small>容易出错</small><p>始终按百分比计算，高售价商品会被多算费用；始终按封顶额计算，低售价商品又会被多算。</p></div>
+          <div><small>工具方案</small><p>项目费取“成交价 × 费率”和封顶额中的较低值；一旦触顶，自动切换为固定费用重新求解售价。</p></div>
+        </article>
+        <article>
+          <div class="scenario-name"><span>场景 05</span><h3>费率和成本会持续变化</h3></div>
+          <div><small>容易出错</small><p>长期沿用旧模板中的费率，公式没有错，输入数据却早已失效。</p></div>
+          <div><small>工具方案</small><p>把预设视为首次估算，把平台结算单视为最终依据；来源、查询日期和历史经营数据共同形成更新闭环。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="solutions-section precision-section" aria-labelledby="precisionTitle">
+      <div class="solutions-heading"><span>精度方案</span><div><h2 id="precisionTitle">小数点不是展示问题，而是利润保护问题</h2><p>计算中的每一次提前取整都会把误差带入后续费率和折扣。</p></div></div>
+      <div class="precision-layout">
+        <div class="precision-example">
+          <span>公式最低售价</span>
+          <strong>0.333333… USD</strong>
+          <div><del>0.33 USD</del><i aria-hidden="true">→</i><b>0.34 USD</b></div>
+          <p>0.33 低于公式要求；0.34 才能继续覆盖目标利润。</p>
+        </div>
+        <ol class="precision-rules">
+          <li><span>01</span><div><strong>中间计算保留完整精度</strong><p>成本换汇、费率和折扣过程中不逐步四舍五入，避免累计误差。</p></div></li>
+          <li><span>02</span><div><strong>售价采用 ROUND_CEILING</strong><p>向上取到销售币种的最小单位：USD、MYR 等为 0.01，VND 为 1。</p></div></li>
+          <li><span>03</span><div><strong>人民币参考值采用 ROUND_HALF_UP</strong><p>人民币售价和利润采用常见四舍五入方式，保留两位小数。</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="solutions-section" aria-labelledby="comparisonTitle">
+      <div class="solutions-heading"><span>设计取舍</span><div><h2 id="comparisonTitle">页面看起来简单，是因为复杂性被放在正确的位置</h2><p>输入端保持直观，计算端承担容易出错的规则。</p></div></div>
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <thead><tr><th>常见做法</th><th>潜在后果</th><th>这个工具的处理</th></tr></thead>
+          <tbody>
+            <tr><td data-label="常见做法">成本 × 目标倍数</td><td data-label="潜在后果">忽略平台费是按售价增加的，利润被高估</td><td data-label="工具处理">用反推公式求最低成交价</td></tr>
+            <tr><td data-label="常见做法">所有费用都塞进一个成本框</td><td data-label="潜在后果">币种混乱，比例费和固定费无法审计</td><td data-label="工具处理">固定成本、物流、比例费、按单费分层</td></tr>
+            <tr><td data-label="常见做法">直接复制旧费率</td><td data-label="潜在后果">市场、类目或活动变化后继续错误定价</td><td data-label="工具处理">预设用于起算，平台结算用于更新</td></tr>
+            <tr><td data-label="常见做法">最终结果普通四舍五入</td><td data-label="潜在后果">向下取整后低于目标利润</td><td data-label="工具处理">售价向上取最小货币单位</td></tr>
+            <tr><td data-label="常见做法">货代和跨境物流都填写</td><td data-label="潜在后果">同一笔物流被重复计入</td><td data-label="工具处理">按费用发生环节分开，并明确避免重复</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="solutions-section source-priority" aria-labelledby="priorityTitle">
+      <div class="solutions-heading"><span>数据原则</span><div><h2 id="priorityTitle">同一个数据有多个来源时，按可信度排序</h2><p>越接近真实订单结算，越应该优先。</p></div></div>
+      <ol>
+        <li><span>1</span><strong>自己的订单结算与真实账单</strong><p>已经发生，最接近真实利润。</p></li>
+        <li><span>2</span><strong>当前 Seller Center 费率与活动条款</strong><p>适用于当前市场、类目和账号状态。</p></li>
+        <li><span>3</span><strong>商家大学与官方公开政策</strong><p>适合首次估算和规则核对。</p></li>
+        <li><span>4</span><strong>工具内参考预设</strong><p>帮助快速起步，但需要定期替换。</p></li>
+      </ol>
+    </section>
+
+    <section class="solutions-actions">
+      <div><h2>先理解公式，再用真实数据计算</h2><p>公式学习页负责讲清口径，售价计算页负责落到可上架数字。</p></div>
+      <div><a class="secondary-action" href="guide.html">查看公式学习</a><a class="primary-action" href="index.html">开始计算售价</a></div>
+    </section>
+  </main>
+</body>
+</html>

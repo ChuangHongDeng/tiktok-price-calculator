@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f6f7f3">
+  <title>TikTok 售价计算器</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
+    <div>
+      <h1>TikTok 售价计算器</h1>
+      <p>把成本、费率和折扣一次算清</p>
+    </div>
+    <nav class="top-nav" aria-label="主要页面">
+      <a class="top-nav-link is-active" href="index.html" aria-current="page">售价计算</a>
+      <a class="top-nav-link" href="shipping.html">物流价表</a>
+      <a class="top-nav-link" href="guide.html">公式学习</a>
+      <a class="top-nav-link" href="solutions.html">设计与方案</a>
+    </nav>
+    <div class="save-state" id="saveState" aria-live="polite">已自动保存</div>
+  </header>
+
+  <main class="app-shell">
+    <section class="workspace" aria-labelledby="inputTitle">
+      <div class="section-heading">
+        <div>
+          <span class="step">01</span>
+          <h2 id="inputTitle">成本与定价</h2>
+        </div>
+        <button class="text-button" id="resetButton" type="button">恢复默认</button>
+      </div>
+
+      <div class="settings-grid">
+        <label class="field">
+          <span>参考市场 <small>费率预设</small></span>
+          <select id="marketPreset">
+            <option value="custom">自定义</option>
+            <option value="MY">马来西亚</option>
+            <option value="PH">菲律宾</option>
+            <option value="TH">泰国</option>
+            <option value="VN">越南</option>
+            <option value="SG">新加坡</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>销售币种</span>
+          <select id="currency">
+            <option value="USD">USD 美元</option>
+            <option value="MYR">MYR 马来西亚林吉特</option>
+            <option value="PHP">PHP 菲律宾比索</option>
+            <option value="THB">THB 泰铢</option>
+            <option value="VND">VND 越南盾</option>
+            <option value="SGD">SGD 新加坡元</option>
+            <option value="GBP">GBP 英镑</option>
+            <option value="EUR">EUR 欧元</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>汇率</span>
+          <div class="exchange-editor">
+            <span id="forwardCurrencyLabel">1 USD =</span>
+            <div class="input-with-unit">
+              <input id="exchangeRate" type="number" min="0.0001" step="0.01" inputmode="decimal" value="7.20">
+              <span>CNY</span>
+            </div>
+          </div>
+          <output class="exchange-reverse" id="reverseRate" for="currency exchangeRate">1 CNY = 0.1389 USD</output>
+        </label>
+      </div>
+
+      <div class="subsection-header">
+        <div>
+          <h3>固定成本</h3>
+          <p>每卖出一件实际发生的人民币成本</p>
+        </div>
+        <button class="secondary-button" id="addCostButton" type="button"><span aria-hidden="true">＋</span> 添加成本</button>
+      </div>
+
+      <div class="cost-table" role="group" aria-label="固定成本列表">
+        <div class="cost-table-head" aria-hidden="true">
+          <span>成本项目</span><span>金额（CNY）</span><span></span>
+        </div>
+        <div id="costRows"></div>
+        <div class="cost-total">
+          <span>固定成本合计</span>
+          <strong id="fixedCostTotal">¥0.00</strong>
+        </div>
+      </div>
+
+      <div class="subsection-header logistics-header">
+        <div>
+          <h3>跨境物流</h3>
+          <p id="shippingReference">支持手动填写，东南亚市场可按 10g 向上取整估算</p>
+        </div>
+        <a class="secondary-button button-link" href="shipping.html">管理价表</a>
+      </div>
+
+      <div class="logistics-grid">
+        <label class="field">
+          <span>商品实重</span>
+          <div class="input-with-unit"><input id="productWeight" type="number" min="0" step="1" inputmode="decimal" value="250"><span>g</span></div>
+        </label>
+        <label class="field">
+          <span>物流计算</span>
+          <select id="shippingMode">
+            <option value="manual">手动填写</option>
+            <option value="official">参考价卡自动估算</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>跨境物流费 <small id="roundedWeightLabel"></small></span>
+          <div class="input-with-unit"><input id="shippingFee" type="number" min="0" step="0.01" inputmode="decimal" value="0"><span class="currency-unit">USD</span></div>
+        </label>
+      </div>
+
+      <div class="volume-calculator">
+        <div class="volume-toolbar">
+          <div>
+            <strong>商品体积</strong>
+            <span>体积重与实重取较大值作为计费重</span>
+          </div>
+          <div class="segmented-control" role="group" aria-label="体积输入方式">
+            <button id="dimensionsModeButton" type="button" aria-pressed="true">长宽高</button>
+            <button id="volumeModeButton" type="button" aria-pressed="false">直接体积</button>
+          </div>
+        </div>
+
+        <div class="dimension-grid" id="dimensionsFields">
+          <label class="field"><span>长</span><div class="input-with-unit"><input id="productLength" type="number" min="0" step="0.1" inputmode="decimal" value="0"><span>cm</span></div></label>
+          <label class="field"><span>宽</span><div class="input-with-unit"><input id="productWidth" type="number" min="0" step="0.1" inputmode="decimal" value="0"><span>cm</span></div></label>
+          <label class="field"><span>高</span><div class="input-with-unit"><input id="productHeight" type="number" min="0" step="0.1" inputmode="decimal" value="0"><span>cm</span></div></label>
+        </div>
+        <label class="field direct-volume-field" id="directVolumeField" hidden>
+          <span>商品体积</span>
+          <div class="input-with-unit wide-unit"><input id="productVolume" type="number" min="0" step="1" inputmode="decimal" value="0"><span>cm³</span></div>
+        </label>
+
+        <div class="billing-metrics">
+          <div><span>计算体积</span><strong id="calculatedVolume">0 cm³</strong></div>
+          <div><span>体积重</span><strong id="volumetricWeightValue">0g</strong></div>
+          <div><span>计费重</span><strong id="chargeableWeightValue">250g</strong><small id="chargeableReason">按实重</small></div>
+        </div>
+      </div>
+
+      <div class="subsection-header fee-header">
+        <div>
+          <h3>按售价扣除</h3>
+          <p>比例费率按折后成交价计算，项目费支持封顶</p>
+        </div>
+      </div>
+
+      <div class="rate-grid">
+        <label class="field"><span>平台佣金</span><div class="input-with-unit"><input id="platformRate" type="number" min="0" max="100" step="0.1" value="8"><span>%</span></div></label>
+        <label class="field"><span>交易/渠道手续费</span><div class="input-with-unit"><input id="paymentRate" type="number" min="0" max="100" step="0.1" value="2"><span>%</span></div></label>
+        <label class="field"><span>项目服务费</span><div class="input-with-unit"><input id="serviceRate" type="number" min="0" max="100" step="0.1" value="0"><span>%</span></div></label>
+        <label class="field"><span>达人佣金</span><div class="input-with-unit"><input id="affiliateRate" type="number" min="0" max="100" step="0.1" value="10"><span>%</span></div></label>
+        <label class="field"><span>广告占比</span><div class="input-with-unit"><input id="adRate" type="number" min="0" max="100" step="0.1" value="8"><span>%</span></div></label>
+        <label class="field"><span>税费</span><div class="input-with-unit"><input id="taxRate" type="number" min="0" max="100" step="0.1" value="0"><span>%</span></div></label>
+        <label class="field"><span>退货损耗预留</span><div class="input-with-unit"><input id="returnRate" type="number" min="0" max="100" step="0.1" value="3"><span>%</span></div></label>
+        <label class="field"><span>项目费封顶 <small>0 = 不封顶</small></span><div class="input-with-unit"><input id="serviceCap" type="number" min="0" step="0.01" value="0"><span class="currency-unit">USD</span></div></label>
+        <label class="field"><span>每单固定费</span><div class="input-with-unit"><input id="fixedOrderFee" type="number" min="0" step="0.01" value="0"><span class="currency-unit">USD</span></div></label>
+      </div>
+
+      <div class="pricing-band">
+        <label class="field emphasis-field">
+          <span>目标利润率 <small>占折后售价</small></span>
+          <div class="input-with-unit"><input id="profitMargin" type="number" min="0" max="100" step="0.5" value="20"><span>%</span></div>
+        </label>
+        <label class="field emphasis-field">
+          <span>活动折扣 <small>顾客看到的折扣</small></span>
+          <div class="input-with-unit"><input id="discountRate" type="number" min="0" max="99" step="1" value="20"><span>%</span></div>
+        </label>
+      </div>
+      <p class="validation" id="validationMessage" role="alert"></p>
+    </section>
+
+    <aside class="result-panel" aria-labelledby="resultTitle">
+      <div class="result-sticky">
+        <div class="section-heading result-heading">
+          <div><span class="step">02</span><h2 id="resultTitle">建议售价</h2></div>
+        </div>
+
+        <div class="price-hero">
+          <p>商品原价</p>
+          <div class="list-price" id="listPrice">$0.00</div>
+          <div class="discount-line"><span id="discountBadge">8 折</span><strong id="salePrice">$0.00</strong></div>
+          <span class="caption">折后成交价</span>
+          <div class="cny-equivalents">
+            <div><span>商品原价折合人民币</span><strong id="listPriceCny">¥0.00</strong></div>
+            <div><span>折后实际售价人民币</span><strong id="salePriceCny">¥0.00</strong></div>
+          </div>
+        </div>
+
+        <div class="profit-summary">
+          <div><span>预计单件利润</span><strong id="profitValue">$0.00</strong><span id="profitValueCny">约 ¥0.00</span></div>
+          <div><span>综合成本率</span><strong id="costRate">0%</strong><span>全部成本占折后售价</span></div>
+        </div>
+
+        <div class="breakdown" aria-labelledby="breakdownTitle">
+          <div class="breakdown-title"><h3 id="breakdownTitle">每单资金去向</h3><span id="salePriceLabel">成交价 $0.00</span></div>
+          <div class="stacked-bar" id="stackedBar" aria-hidden="true">
+            <span class="bar-cost"></span><span class="bar-shipping"></span><span class="bar-fee"></span><span class="bar-profit"></span>
+          </div>
+          <dl>
+            <div><dt><i class="legend cost"></i>固定成本</dt><dd id="costValue">$0.00</dd></div>
+            <div><dt><i class="legend shipping"></i>跨境物流</dt><dd id="shippingValue">$0.00</dd></div>
+            <div><dt><i class="legend fee"></i>平台及经营费</dt><dd id="feeValue">$0.00</dd></div>
+            <div><dt><i class="legend profit"></i>目标利润</dt><dd id="profitBreakdown">$0.00</dd></div>
+          </dl>
+        </div>
+
+        <div class="formula-note">
+          <strong>计算口径</strong>
+          <p>折后售价覆盖全部成本和目标利润；最终售价按币种最小单位向上取整，避免四舍五入后低于目标利润。</p>
+        </div>
+
+        <button class="primary-button" id="copyButton" type="button">复制定价结果</button>
+      </div>
+    </aside>
+  </main>
+
+  <template id="costRowTemplate">
+    <div class="cost-row">
+      <label><span class="sr-only">成本项目名称</span><input class="cost-name" type="text" maxlength="20"></label>
+      <label><span class="sr-only">成本金额</span><input class="cost-amount" type="number" min="0" step="0.01" inputmode="decimal"></label>
+      <button class="icon-button delete-cost" type="button" aria-label="删除这项成本">×</button>
+    </div>
+  </template>
+
+  <script src="shipping-store.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

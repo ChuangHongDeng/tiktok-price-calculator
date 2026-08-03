@@ -1,0 +1,101 @@
+.guide-shell {
+  width: min(1100px, calc(100% - 40px));
+  margin: 0 auto 56px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.guide-intro, .guide-section, .guide-checklist { padding: 38px 44px; }
+.guide-intro { padding-bottom: 42px; }
+.guide-section, .guide-checklist { border-top: 1px solid var(--line); }
+.guide-kicker { margin: 0 0 10px; color: var(--primary); font-size: 12px; font-weight: 700; }
+.guide-intro h2 { max-width: 720px; margin: 0; font-size: 28px; letter-spacing: 0; }
+.guide-lead { max-width: 760px; margin: 12px 0 26px; color: var(--muted); line-height: 1.75; }
+
+.formula-board { padding: 28px 30px; border-left: 4px solid var(--primary); background: var(--surface-alt); }
+.formula-equation { display: flex; align-items: center; justify-content: center; gap: 22px; color: var(--primary-dark); }
+.formula-equation > strong { font-size: 22px; white-space: nowrap; }
+.formula-operator { font-size: 24px; font-weight: 700; }
+.formula-fraction { min-width: 340px; display: grid; text-align: center; font-size: 16px; font-weight: 700; }
+.formula-fraction i { display: block; height: 2px; margin: 9px 0; background: currentColor; }
+.formula-secondary { display: flex; justify-content: center; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid #cbd8d0; color: var(--ink); font-size: 13px; }
+.data-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+.source-tag { display: inline-block; width: max-content; border-radius: 3px; padding: 3px 7px; font-size: 11px; font-style: normal; font-weight: 700; white-space: nowrap; }
+.source-tag.manual { background: #e7f1eb; color: #0e6047; }
+.source-tag.platform { background: #e8eef5; color: #315f80; }
+.source-tag.public { background: #fff0d8; color: #81570f; }
+.source-tag.calculated { background: #f9e6e2; color: #9b3b2f; }
+
+.guide-section-heading { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
+.guide-section-heading > span { color: var(--primary); font-size: 12px; font-weight: 700; padding-top: 3px; }
+.guide-section-heading h2, .guide-checklist h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+.guide-section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.sub-formula { margin: 22px 0 18px 46px; padding: 13px 16px; background: var(--surface-alt); color: var(--primary-dark); font-size: 13px; font-weight: 700; }
+
+.guide-table-wrap { margin-left: 46px; }
+.guide-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.guide-table th { padding: 10px 12px; border-bottom: 2px solid var(--ink); color: var(--muted); font-size: 11px; text-align: left; }
+.guide-table th:nth-child(1) { width: 20%; }
+.guide-table th:nth-child(2) { width: 18%; }
+.guide-table th:nth-child(3) { width: 30%; }
+.guide-table th:nth-child(4) { width: 32%; }
+.guide-table td { padding: 13px 12px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 12px; line-height: 1.55; }
+.guide-table td strong { display: block; margin-bottom: 3px; font-size: 13px; }
+.guide-table td small { color: var(--muted); font-size: 11px; }
+.guide-table td .source-tag + .source-tag { margin-top: 4px; }
+.cap-note { margin: 18px 0 0 46px; padding-left: 13px; border-left: 3px solid var(--fee); color: var(--muted); font-size: 12px; line-height: 1.65; }
+.cap-note strong { color: var(--ink); }
+
+.example-steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 24px; margin: 24px 0 0 46px; padding: 0; list-style: none; counter-reset: example; }
+.example-steps li { position: relative; min-width: 0; display: grid; gap: 6px; padding: 16px 0 16px 34px; border-bottom: 1px solid var(--line); counter-increment: example; }
+.example-steps li::before { content: counter(example); position: absolute; top: 17px; left: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 11px; line-height: 22px; text-align: center; }
+.example-steps li > span { color: var(--muted); font-size: 11px; }
+.example-steps li > strong { font-size: 13px; line-height: 1.55; }
+.example-result { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 22px 0 0 46px; background: var(--line); border: 1px solid var(--line); }
+.example-result > div { min-width: 0; display: grid; gap: 7px; padding: 18px; background: var(--surface-alt); }
+.example-result span { color: var(--muted); font-size: 11px; }
+.example-result strong { color: var(--primary-dark); font-size: 15px; overflow-wrap: anywhere; }
+
+.source-lanes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 24px 0 0 46px; }
+.source-lanes > div { min-width: 0; padding-top: 14px; border-top: 3px solid var(--line); }
+.source-lanes strong { display: block; margin-top: 12px; font-size: 13px; }
+.source-lanes p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+
+.guide-checklist { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px 40px; align-items: center; background: #f9faf7; }
+.guide-checklist ul { grid-column: 1; margin: 0; padding-left: 20px; color: var(--muted); font-size: 12px; line-height: 2; }
+.guide-cta { grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; justify-content: center; min-width: 170px; height: 44px; border-radius: 5px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+.guide-cta:hover { background: var(--primary-dark); }
+
+@media (max-width: 800px) {
+  .source-lanes { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 700px) {
+  .guide-shell { width: calc(100% - 24px); }
+  .guide-intro, .guide-section, .guide-checklist { padding: 26px 18px; }
+  .guide-intro h2 { font-size: 22px; }
+  .formula-board { padding: 22px 16px; }
+  .formula-equation { flex-direction: column; gap: 10px; }
+  .formula-equation > strong { font-size: 18px; }
+  .formula-operator { line-height: 1; }
+  .formula-fraction { min-width: 0; width: 100%; font-size: 13px; }
+  .formula-secondary { flex-wrap: wrap; gap: 7px; text-align: center; }
+  .sub-formula, .guide-table-wrap, .cap-note, .example-steps, .example-result, .source-lanes { margin-left: 0; }
+  .sub-formula { line-height: 1.65; }
+  .guide-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+  .guide-table, .guide-table tbody, .guide-table tr, .guide-table td { display: block; width: 100%; }
+  .guide-table tr { padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .guide-table td { display: grid; grid-template-columns: 98px minmax(0, 1fr); gap: 10px; padding: 5px 0; border: 0; }
+  .guide-table td::before { content: attr(data-label); color: var(--muted); font-size: 11px; }
+  .guide-table td strong { margin: 0; }
+  .example-steps, .example-result, .source-lanes { grid-template-columns: 1fr; }
+  .guide-checklist { grid-template-columns: 1fr; }
+  .guide-checklist ul, .guide-cta { grid-column: 1; grid-row: auto; }
+  .guide-cta { width: 100%; }
+}
+
+@media (max-width: 360px) {
+  .guide-table td { grid-template-columns: 82px minmax(0, 1fr); }
+}
