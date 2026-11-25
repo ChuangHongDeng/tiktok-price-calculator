@@ -43,6 +43,9 @@
         <div class="formula-secondary">
           <span>商品原价</span><strong>=</strong><span>折后成交价 ÷（1 - 活动折扣）</span>
         </div>
+        <div class="formula-secondary">
+          <span>项目费触顶</span><strong>=</strong><span>（单件固定成本 + 项目费封顶额）÷（1 - 综合费率(不含项目费) - 目标利润率）</span>
+        </div>
       </div>
 
       <div class="data-legend" aria-label="数据类型图例">
@@ -58,7 +61,8 @@
         <span>01</span>
         <div><h2 id="fixedTitle">先得到单件固定成本</h2><p>所有金额必须摊到一件商品，并统一换算到销售币种。</p></div>
       </div>
-      <div class="sub-formula">单件固定成本 = 人民币固定成本 ÷ 汇率 + 跨境物流费 + 每单固定费</div>
+      <div class="sub-formula">单件固定成本 = 人民币固定成本 ÷ 汇率 + 跨境物流费 + 马来尾程 SST + 每单固定费</div>
+      <p class="cap-note"><strong>计费重：</strong>跨境物流费按计费重查价卡；计费重 = 实重与体积重中的较大值，再向上取整到 10g。体积重 = 体积（cm³）÷ 体积重系数 × 1000g。货代成本与跨境物流不重复计入。</p>
       <div class="guide-table-wrap">
         <table class="guide-table">
           <thead><tr><th>需要的数据</th><th>方式</th><th>怎么确定</th><th>优先来源</th></tr></thead>
@@ -67,7 +71,10 @@
             <tr><td data-label="需要的数据"><strong>包装及国内费用</strong><small>人民币/件</small></td><td data-label="方式"><span class="source-tag manual">人工输入</span></td><td data-label="怎么确定">包装、贴标、国内快递等逐项摊销</td><td data-label="优先来源">耗材采购单、仓库及快递账单</td></tr>
             <tr><td data-label="需要的数据"><strong>货代或头程费用</strong><small>人民币/件</small></td><td data-label="方式"><span class="source-tag manual">人工输入</span></td><td data-label="怎么确定">整批货代费用 ÷ 可售件数；混合商品可按重量分摊</td><td data-label="优先来源">货代报价单和最终对账单</td></tr>
             <tr><td data-label="需要的数据"><strong>汇率</strong><small>1 销售币种 = 人民币</small></td><td data-label="方式"><span class="source-tag manual">人工输入</span> <span class="source-tag public">公开查询</span></td><td data-label="怎么确定">估价可用公开汇率，复盘应使用实际结算汇率</td><td data-label="优先来源">平台结算单、收款账户；银行公开牌价仅作参考</td></tr>
-            <tr><td data-label="需要的数据"><strong>跨境物流费</strong><small>销售币种/件</small></td><td data-label="方式"><span class="source-tag manual">人工输入</span> <span class="source-tag public">公开查询</span></td><td data-label="怎么确定">按商品计费重量匹配价卡；已有货代成本时避免重复填写</td><td data-label="优先来源">实际物流账单、TikTok Shop 商家大学物流价卡</td></tr>
+            <tr><td data-label="需要的数据"><strong>跨境物流费</strong><small>销售币种/件</small></td><td data-label="方式"><span class="source-tag manual">手动填写</span> <span class="source-tag public">价卡估算</span></td><td data-label="怎么确定">按计费重查价卡，支持手动填写或选择参考价卡自动估算；已有货代成本时避免重复填写</td><td data-label="优先来源">实际物流账单、物流价表维护页导入的最新价卡</td></tr>
+            <tr><td data-label="需要的数据"><strong>商品体积与体积重</strong><small>cm³ / g</small></td><td data-label="方式"><span class="source-tag manual">人工输入</span> <span class="source-tag calculated">自动计算</span></td><td data-label="怎么确定">长宽高或直接体积二选一；体积重 = 体积 ÷ 体积重系数 × 1000</td><td data-label="优先来源">包装外箱实测、物流价表维护页设置的体积重系数</td></tr>
+            <tr><td data-label="需要的数据"><strong>物流计费重</strong><small>g</small></td><td data-label="方式"><span class="source-tag calculated">自动计算</span></td><td data-label="怎么确定">取实重与体积重的较大值，再向上取整到 10g 后匹配价卡</td><td data-label="优先来源">计算页实时展示的计费重与对应物流费</td></tr>
+            <tr><td data-label="需要的数据"><strong>马来尾程 SST</strong><small>尾程运费 × 6%</small></td><td data-label="方式"><span class="source-tag platform">平台查询</span></td><td data-label="怎么确定">按平台现行政策，马来西亚跨境商家的尾程运费加收 6% 服务税；其他市场填写 0</td><td data-label="优先来源">平台税务通知、Seller Center 运费结算明细</td></tr>
             <tr><td data-label="需要的数据"><strong>每单固定费</strong><small>销售币种/单</small></td><td data-label="方式"><span class="source-tag platform">平台查询</span></td><td data-label="怎么确定">确认站点是否收取订单处理费、基建费等</td><td data-label="优先来源">Seller Center 费率说明和订单结算明细</td></tr>
           </tbody>
         </table>
@@ -105,10 +112,12 @@
       </div>
       <ol class="example-steps">
         <li><span>人民币固定成本</span><strong>采购 60 + 包装及国内费用 8 = 68 CNY</strong><em class="source-tag manual">人工输入</em></li>
-        <li><span>换成销售币种</span><strong>68 ÷ 1.70 + 跨境物流 5 = 45 MYR</strong><em class="source-tag calculated">自动计算</em></li>
+        <li><span>换成销售币种</span><strong>68 ÷ 1.70 = 40 MYR</strong><em class="source-tag calculated">自动计算</em></li>
+        <li><span>物流计费重与物流费</span><strong>实重 240g、体积重 0，计费重 240g，价卡物流 5 MYR</strong><em class="source-tag calculated">自动计算</em></li>
         <li><span>综合费率</span><strong>平台 8% + 交易 4% + 广告 10% + 损耗 3% = 25%</strong><em class="source-tag calculated">自动汇总</em></li>
         <li><span>目标利润率</span><strong>20%</strong><em class="source-tag manual">人工输入</em></li>
       </ol>
+      <p class="cap-note"><strong>示例从简：</strong>马来尾程 SST 与每单固定费均填写 0，单件固定成本 = 40 + 5 = 45 MYR；实际马来西亚订单应按现行税率加回 SST。</p>
       <div class="example-result">
         <div><span>折后成交价</span><strong>45 ÷（1 - 25% - 20%）= 81.82 MYR</strong></div>
         <div><span>50% 折扣对应商品原价</span><strong>81.82 ÷（1 - 50%）= 163.64 MYR</strong></div>
@@ -133,6 +142,9 @@
       <ul>
         <li>所有固定成本都已经换算成单件成本</li>
         <li>货代成本和跨境物流没有重复计算</li>
+        <li>商品体积已正确填写，计费重按实重和体积重取大并向上取整到 10g</li>
+        <li>尾程运费 SST 仅马来西亚适用，其他市场已填写 0</li>
+        <li>物流价表已在物流价表维护页更新为最新</li>
         <li>平台费率对应当前市场、类目和活动状态</li>
         <li>综合费率与目标利润率之和小于 100%</li>
         <li>记录了费率来源和查询日期，方便后续更新</li>

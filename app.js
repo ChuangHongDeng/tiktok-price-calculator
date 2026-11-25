@@ -12,18 +12,18 @@ const currencyMeta = {
 };
 
 const marketPresets = {
-  MY: { currency: "MYR", exchangeRate: 1.6997, platformRate: 8.46, paymentRate: 3.78, serviceRate: 0, serviceCap: 0, affiliateRate: 12, taxRate: 10, fixedOrderFee: 0 },
-  PH: { currency: "PHP", exchangeRate: 0.1252, platformRate: 5.96, paymentRate: 2.24, serviceRate: 5.5, serviceCap: 100, affiliateRate: 10, taxRate: 0, fixedOrderFee: 3 },
-  TH: { currency: "THB", exchangeRate: 0.2, platformRate: 5.35, paymentRate: 3.21, serviceRate: 5.35, serviceCap: 199, affiliateRate: 10, taxRate: 0, fixedOrderFee: 1.07 },
-  VN: { currency: "VND", exchangeRate: 0.00029, platformRate: 4, paymentRate: 5, serviceRate: 0, serviceCap: 0, affiliateRate: 10, taxRate: 10, fixedOrderFee: 3000 },
-  SG: { currency: "SGD", exchangeRate: 5.3, platformRate: 4.36, paymentRate: 3.27, serviceRate: 0, serviceCap: 0, affiliateRate: 10, taxRate: 0, fixedOrderFee: 0 }
+  MY: { currency: "MYR", exchangeRate: 1.6997, platformRate: 8.46, paymentRate: 3.78, serviceRate: 0, serviceCap: 0, affiliateRate: 12, taxRate: 10, fixedOrderFee: 0, shippingSstRate: 6 },
+  PH: { currency: "PHP", exchangeRate: 0.1252, platformRate: 5.96, paymentRate: 2.24, serviceRate: 5.5, serviceCap: 100, affiliateRate: 10, taxRate: 0, fixedOrderFee: 3, shippingSstRate: 0 },
+  TH: { currency: "THB", exchangeRate: 0.2, platformRate: 5.35, paymentRate: 3.21, serviceRate: 5.35, serviceCap: 199, affiliateRate: 10, taxRate: 0, fixedOrderFee: 1.07, shippingSstRate: 0 },
+  VN: { currency: "VND", exchangeRate: 0.00029, platformRate: 4, paymentRate: 5, serviceRate: 0, serviceCap: 0, affiliateRate: 10, taxRate: 10, fixedOrderFee: 3000, shippingSstRate: 0 },
+  SG: { currency: "SGD", exchangeRate: 5.3, platformRate: 4.36, paymentRate: 3.27, serviceRate: 0, serviceCap: 0, affiliateRate: 10, taxRate: 0, fixedOrderFee: 0, shippingSstRate: 0 }
 };
 
 const currencyDigits = { VND: 0 };
 const numericInputKeys = [
   "exchangeRate", "platformRate", "paymentRate", "serviceRate", "serviceCap", "fixedOrderFee",
   "affiliateRate", "adRate", "taxRate", "returnRate", "productWeight", "productLength", "productWidth",
-  "productHeight", "productVolume", "profitMargin", "discountRate"
+  "productHeight", "productVolume", "profitMargin", "discountRate", "shippingSstRate"
 ];
 
 const defaultState = {
@@ -53,8 +53,10 @@ const defaultState = {
   productVolume: 0,
   shippingMode: "manual",
   manualShippingFee: 0,
+  shippingSstRate: 6,
   profitMargin: 20,
-  discountRate: 20
+  discountRate: 20,
+  quantity: 1
 };
 
 let state = loadState();
@@ -197,6 +199,9 @@ function getCalculation() {
   const billing = getBillingDetails();
   const shippingQuote = billing.valid ? getShippingQuote(state.marketPreset, billing.chargeableWeight) : null;
   const shippingCost = state.shippingMode === "official" ? (shippingQuote?.fee || 0) : numberValue(state.manualShippingFee);
+  const shippingSstRate = numberValue(state.shippingSstRate) / 100;
+  const rawShippingSst = shippingCost * shippingSstRate;
+  const shippingSst = rawShippingSst ? roundHalfUp(rawShippingSst, getCurrencyDigits(state.currency)) : 0;
   const feeRate = ["platformRate", "paymentRate", "affiliateRate", "adRate", "taxRate", "returnRate"]
     .reduce((sum, key) => sum + numberValue(state[key]), 0) / 100;
   const serviceRate = numberValue(state.serviceRate) / 100;
@@ -204,7 +209,7 @@ function getCalculation() {
   const fixedOrderFee = numberValue(state.fixedOrderFee);
   const profitRate = numberValue(state.profitMargin) / 100;
   const discountRate = Math.min(99, numberValue(state.discountRate)) / 100;
-  const baseCost = fixedCost + shippingCost + fixedOrderFee;
+  const baseCost = fixedCost + shippingCost + shippingSst + fixedOrderFee;
   const uncappedDenominator = 1 - feeRate - serviceRate - profitRate;
   const cappedDenominator = 1 - feeRate - profitRate;
   let salePrice = 0;
@@ -238,6 +243,9 @@ function getCalculation() {
     salePrice = hitsCap ? (baseCost + serviceCap) / cappedDenominator : uncappedPrice;
   }
 
+  if (!error && !Number.isFinite(salePrice)) {
+    error = "各项费率与目标利润率合计必须小于 100%。";
+  }
   if (!error && Number.isFinite(salePrice)) salePrice = roundUpMoney(salePrice, state.currency);
   const valid = !error && Number.isFinite(salePrice) && salePrice >= 0;
   const listPrice = valid ? roundUpMoney(salePrice / (1 - discountRate), state.currency) : 0;
@@ -245,12 +253,27 @@ function getCalculation() {
   const rawServiceFee = valid ? salePrice * serviceRate : 0;
   const serviceFee = serviceCap > 0 ? Math.min(rawServiceFee, serviceCap) : rawServiceFee;
   const fees = valid ? percentageFees + serviceFee + fixedOrderFee : 0;
-  const profit = valid ? salePrice - fixedCost - shippingCost - fees : 0;
-  const totalCost = valid ? fixedCost + shippingCost + fees : 0;
-  const costRate = salePrice > 0 ? totalCost / salePrice : 0;
+  const profit = valid ? salePrice - fixedCost - shippingCost - shippingSst - fees : 0;
+  const unitCost = valid ? fixedCost + shippingCost + shippingSst + fees : 0;
+  const costRate = salePrice > 0 ? unitCost / salePrice : 0;
+  const quantity = Math.max(1, Math.round(numberValue(state.quantity)));
+  const totalFixedCostCny = valid ? fixedCostCny * quantity : 0;
+  const totalFixedCost = valid ? fixedCost * quantity : 0;
+  const totalShippingCost = valid ? shippingCost * quantity : 0;
+  const totalShippingSst = valid ? shippingSst * quantity : 0;
+  const totalFees = valid ? fees * quantity : 0;
+  const totalCost = valid ? unitCost * quantity : 0;
+  const totalSalePrice = valid ? salePrice * quantity : 0;
+  const totalListPrice = valid ? listPrice * quantity : 0;
+  const totalProfit = valid ? profit * quantity : 0;
+  const totalListPriceCny = valid ? listPrice * exchangeRate * quantity : 0;
+  const totalSalePriceCny = valid ? salePrice * exchangeRate * quantity : 0;
+  const totalProfitCny = valid ? profit * exchangeRate * quantity : 0;
   return {
-    fixedCostCny, fixedCost, exchangeRate, billing, shippingQuote, shippingCost, feeRate, serviceRate, serviceCap,
-    serviceFee, fixedOrderFee, profitRate, discountRate, valid, error, salePrice, listPrice, fees, profit, costRate
+    fixedCostCny, fixedCost, exchangeRate, billing, shippingQuote, shippingCost, shippingSst, shippingSstRate, feeRate, serviceRate, serviceCap,
+    serviceFee, fixedOrderFee, profitRate, discountRate, valid, error, salePrice, listPrice, fees, profit, costRate, quantity,
+    totalFixedCostCny, totalFixedCost, totalShippingCost, totalShippingSst, totalFees, totalCost,
+    totalSalePrice, totalListPrice, totalProfit, totalListPriceCny, totalSalePriceCny, totalProfitCny
   };
 }
 
@@ -276,15 +299,24 @@ function updateResults() {
       ? `${window.ShippingPriceStore.markets[state.marketPreset].name}当前使用 ${calc.shippingQuote.sourceFile} · 体积重系数 ${calc.billing.config.volumetricDivisor} cm³/kg`
       : `${window.ShippingPriceStore.markets[state.marketPreset].name}内置参考价卡 · 体积重系数 ${calc.billing.config.volumetricDivisor} cm³/kg`;
   $("fixedCostTotal").textContent = formatCny(calc.fixedCostCny);
+  $("shippingSstAmount").textContent = `+${formatMoney(calc.shippingSst)}`;
   $("listPrice").textContent = formatMoney(calc.listPrice);
   $("salePrice").textContent = formatMoney(calc.salePrice);
   $("listPriceCny").textContent = formatCny(calc.listPrice * calc.exchangeRate);
   $("salePriceCny").textContent = formatCny(calc.salePrice * calc.exchangeRate);
+  $("quantityLabel").textContent = `共 ${calc.quantity} 件`;
+  $("totalListPrice").textContent = formatMoney(calc.totalListPrice);
+  $("totalSalePrice").textContent = formatMoney(calc.totalSalePrice);
+  $("totalCost").textContent = formatMoney(calc.totalCost);
+  $("totalProfit").textContent = formatMoney(calc.totalProfit);
+  $("totalSalePriceCny").textContent = formatCny(calc.totalSalePriceCny);
+  $("totalProfitCny").textContent = `约 ${formatCny(calc.totalProfitCny)}`;
   $("profitValue").textContent = formatMoney(calc.profit);
   $("profitValueCny").textContent = `约 ${formatCny(calc.profit * calc.exchangeRate)}`;
   $("costRate").textContent = `${(calc.costRate * 100).toFixed(1)}%`;
   $("costValue").textContent = formatMoney(calc.fixedCost);
   $("shippingValue").textContent = formatMoney(calc.shippingCost);
+  $("shippingSstValue").textContent = formatMoney(calc.shippingSst);
   $("feeValue").textContent = formatMoney(calc.fees);
   $("profitBreakdown").textContent = formatMoney(calc.profit);
   $("salePriceLabel").textContent = `成交价 ${formatMoney(calc.salePrice)}`;
@@ -294,6 +326,7 @@ function updateResults() {
   $("stackedBar").classList.toggle("is-invalid", !calc.valid);
   $("stackedBar").querySelector(".bar-cost").style.width = `${(calc.valid ? calc.fixedCost : 0) / total * 100}%`;
   $("stackedBar").querySelector(".bar-shipping").style.width = `${(calc.valid ? calc.shippingCost : 0) / total * 100}%`;
+  $("stackedBar").querySelector(".bar-sst").style.width = `${(calc.valid ? calc.shippingSst : 0) / total * 100}%`;
   $("stackedBar").querySelector(".bar-fee").style.width = `${(calc.valid ? calc.fees : 0) / total * 100}%`;
   $("stackedBar").querySelector(".bar-profit").style.width = `${(calc.valid ? Math.max(0, calc.profit) : 0) / total * 100}%`;
 
@@ -363,6 +396,12 @@ function bindInputs() {
     update();
   });
 
+  $("quantity").value = state.quantity;
+  $("quantity").addEventListener("input", (event) => {
+    state.quantity = Math.max(1, Math.round(numberValue(event.target.value)));
+    update();
+  });
+
   $("dimensionsModeButton").addEventListener("click", () => {
     state.volumeInputMode = "dimensions";
     renderVolumeInputMode();
@@ -399,10 +438,17 @@ function bindInputs() {
       `活动折扣：${numberValue(state.discountRate)}%`,
       `折后售价：${formatMoney(calc.salePrice)}`,
       `折后售价人民币：${formatCny(calc.salePrice * calc.exchangeRate)}`,
+      `销售数量：${calc.quantity} 件`,
+      `总商品原价：${formatMoney(calc.totalListPrice)}`,
+      `总成交额：${formatMoney(calc.totalSalePrice)}`,
+      `总成交额人民币：${formatCny(calc.totalSalePriceCny)}`,
       `预计单件利润：${formatMoney(calc.profit)}`,
       `预计单件利润人民币：${formatCny(calc.profit * calc.exchangeRate)}`,
+      `预计总利润：${formatMoney(calc.totalProfit)}`,
+      `预计总利润人民币：${formatCny(calc.totalProfitCny)}`,
       `固定成本：${formatCny(calc.fixedCostCny)}`,
       `跨境物流：${formatMoney(calc.shippingCost)}`,
+      `尾程运费 SST：${formatMoney(calc.shippingSst)}（${(calc.shippingSstRate * 100).toFixed(1)}%）`,
       `商品实重：${formatWeight(calc.billing.actualWeight)}`,
       `商品体积：${calc.billing.volume.toLocaleString("zh-CN", { maximumFractionDigits: 2 })} cm³`,
       `体积重：${formatWeight(calc.billing.volumetricWeight)}`,
@@ -428,6 +474,7 @@ function bindStateToInputs() {
   $("currency").value = state.currency;
   $("shippingMode").value = state.shippingMode;
   $("shippingFee").value = state.manualShippingFee;
+  $("quantity").value = state.quantity;
   renderVolumeInputMode();
 }
 

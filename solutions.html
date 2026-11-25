@@ -28,23 +28,23 @@
     <section class="solutions-intro" aria-labelledby="solutionsTitle">
       <p class="solutions-kicker">工具背后的设计</p>
       <h2 id="solutionsTitle">把“算出一个数”，变成“得到一个敢上架的价格”</h2>
-      <p>售价不是成本乘一个倍数。真正可用的结果必须同时处理币种、平台比例费、封顶费用、折扣反推、金额精度和数据来源。</p>
+      <p>售价不是成本乘一个倍数。真正可用的结果必须同时处理币种、物流计费重、平台比例费、封顶费用、折扣反推、金额精度和数据来源。</p>
 
       <div class="value-rails">
         <div><span>01</span><strong>不漏成本</strong><p>固定成本、物流、按单费用和比例费用分开建模，减少少算与重复计算。</p></div>
         <div><span>02</span><strong>不低估售价</strong><p>从目标利润率反推最低成交价，再向上取到币种最小单位。</p></div>
-        <div><span>03</span><strong>结果可追溯</strong><p>预设只负责起步，最终数据回到平台结算、真实账单和自己的经营报表。</p></div>
+        <div><span>03</span><strong>结果可追溯</strong><p>预设只负责起步，物流价表可按市场导入并记录来源与日期，最终回到平台结算与真实账单。</p></div>
       </div>
     </section>
 
     <section class="solutions-section" aria-labelledby="flowTitle">
       <div class="solutions-heading"><span>工作流</span><div><h2 id="flowTitle">每个结果都经过五道处理</h2><p>这条链路是工具好用的核心，而不是页面上某一个输入框。</p></div></div>
       <div class="pricing-flow" role="img" aria-label="真实成本经过币种统一、费率模型、折扣反推和安全取整后得到可上架价格">
-        <div><small>真实账单</small><strong>成本归集</strong><span>每批费用摊到单件</span></div>
+        <div><small>真实账单</small><strong>成本归集</strong><span>每批费用摊到单件，物流按计费重查价卡</span></div>
         <i aria-hidden="true">→</i>
         <div><small>同一口径</small><strong>币种统一</strong><span>人民币换成销售币种</span></div>
         <i aria-hidden="true">→</i>
-        <div><small>平台规则</small><strong>费用建模</strong><span>比例、固定、封顶分开</span></div>
+        <div><small>平台规则</small><strong>费用建模</strong><span>比例、固定、封顶、SST 分开</span></div>
         <i aria-hidden="true">→</i>
         <div><small>营销场景</small><strong>折扣反推</strong><span>先保住成交价再算原价</span></div>
         <i aria-hidden="true">→</i>
@@ -68,7 +68,7 @@
         <article>
           <div class="scenario-name"><span>场景 03</span><h3>同一商品卖到多个国家</h3></div>
           <div><small>容易出错</small><p>只换货币符号，没有同步汇率、物流档位、市场手续费和最小货币单位。</p></div>
-          <div><small>工具方案</small><p>市场预设同步币种与参考费率，双向汇率展示换算关系，结果同时给出当地币和人民币，便于横向比较。</p></div>
+          <div><small>工具方案</small><p>市场预设同步币种、参考费率与 SST 规则，体积重系数按市场维护；结果同时给出当地币和人民币，便于横向比较。</p></div>
         </article>
         <article>
           <div class="scenario-name"><span>场景 04</span><h3>平台项目费有封顶金额</h3></div>
@@ -78,7 +78,12 @@
         <article>
           <div class="scenario-name"><span>场景 05</span><h3>费率和成本会持续变化</h3></div>
           <div><small>容易出错</small><p>长期沿用旧模板中的费率，公式没有错，输入数据却早已失效。</p></div>
-          <div><small>工具方案</small><p>把预设视为首次估算，把平台结算单视为最终依据；来源、查询日期和历史经营数据共同形成更新闭环。</p></div>
+          <div><small>工具方案</small><p>把预设视为首次估算，把平台结算单视为最终依据；物流价表可在维护页导入并记录来源与日期，和费率、历史经营数据一起形成更新闭环。</p></div>
+        </article>
+        <article>
+          <div class="scenario-name"><span>场景 06</span><h3>商品体积大但重量轻（抛货）</h3></div>
+          <div><small>容易出错</small><p>只按实重查价卡，抛货的物流费被严重低估，利润被高估。</p></div>
+          <div><small>工具方案</small><p>长宽高或直接体积都可输入，按市场体积重系数算出体积重；计费重取实重与体积重的较大值，再向上取整到 10g 后查价卡。</p></div>
         </article>
       </div>
     </section>
@@ -96,6 +101,7 @@
           <li><span>01</span><div><strong>中间计算保留完整精度</strong><p>成本换汇、费率和折扣过程中不逐步四舍五入，避免累计误差。</p></div></li>
           <li><span>02</span><div><strong>售价采用 ROUND_CEILING</strong><p>向上取到销售币种的最小单位：USD、MYR 等为 0.01，VND 为 1。</p></div></li>
           <li><span>03</span><div><strong>人民币参考值采用 ROUND_HALF_UP</strong><p>人民币售价和利润采用常见四舍五入方式，保留两位小数。</p></div></li>
+          <li><span>04</span><div><strong>物流计费重按 10g 向上取整</strong><p>计费重取实重与体积重较大值后向上取整到 10g，再匹配价卡档位，避免档位误差。</p></div></li>
         </ol>
       </div>
     </section>
@@ -111,6 +117,9 @@
             <tr><td data-label="常见做法">直接复制旧费率</td><td data-label="潜在后果">市场、类目或活动变化后继续错误定价</td><td data-label="工具处理">预设用于起算，平台结算用于更新</td></tr>
             <tr><td data-label="常见做法">最终结果普通四舍五入</td><td data-label="潜在后果">向下取整后低于目标利润</td><td data-label="工具处理">售价向上取最小货币单位</td></tr>
             <tr><td data-label="常见做法">货代和跨境物流都填写</td><td data-label="潜在后果">同一笔物流被重复计入</td><td data-label="工具处理">按费用发生环节分开，并明确避免重复</td></tr>
+            <tr><td data-label="常见做法">只看实重，不看体积重</td><td data-label="潜在后果">抛货物流费被低估，折后售价偏低</td><td data-label="工具处理">体积重与实重取大，计费重按 10g 向上取整</td></tr>
+            <tr><td data-label="常见做法">尾程 SST 漏算或全市场套用</td><td data-label="潜在后果">马来西亚漏税，其他市场被多算费用</td><td data-label="工具处理">SST 作为可编辑项，默认仅马来 6%，其他市场 0</td></tr>
+            <tr><td data-label="常见做法">物流价卡长期沿用旧表</td><td data-label="潜在后果">运费已调价仍按旧档定价</td><td data-label="工具处理">物流价表维护页支持 Excel 导入，并记录来源和日期</td></tr>
           </tbody>
         </table>
       </div>
@@ -121,7 +130,7 @@
       <ol>
         <li><span>1</span><strong>自己的订单结算与真实账单</strong><p>已经发生，最接近真实利润。</p></li>
         <li><span>2</span><strong>当前 Seller Center 费率与活动条款</strong><p>适用于当前市场、类目和账号状态。</p></li>
-        <li><span>3</span><strong>商家大学与官方公开政策</strong><p>适合首次估算和规则核对。</p></li>
+        <li><span>3</span><strong>商家大学与官方公开政策</strong><p>适合首次估算和规则核对，含官方物流价卡。</p></li>
         <li><span>4</span><strong>工具内参考预设</strong><p>帮助快速起步，但需要定期替换。</p></li>
       </ol>
     </section>

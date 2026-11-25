@@ -115,6 +115,14 @@
           <span>跨境物流费 <small id="roundedWeightLabel"></small></span>
           <div class="input-with-unit"><input id="shippingFee" type="number" min="0" step="0.01" inputmode="decimal" value="0"><span class="currency-unit">USD</span></div>
         </label>
+        <label class="field sst-field">
+          <span>尾程运费 SST</span>
+          <div class="input-with-unit">
+            <input id="shippingSstRate" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="6">
+            <span>%</span>
+          </div>
+          <output class="sst-amount" id="shippingSstAmount" aria-live="polite">+0.00</output>
+        </label>
       </div>
 
       <div class="volume-calculator">
@@ -167,6 +175,10 @@
 
       <div class="pricing-band">
         <label class="field emphasis-field">
+          <span>销售数量 <small>汇总总额</small></span>
+          <div class="input-with-unit"><input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="1"><span>件</span></div>
+        </label>
+        <label class="field emphasis-field">
           <span>目标利润率 <small>占折后售价</small></span>
           <div class="input-with-unit"><input id="profitMargin" type="number" min="0" max="100" step="0.5" value="20"><span>%</span></div>
         </label>
@@ -200,14 +212,32 @@
           <div><span>综合成本率</span><strong id="costRate">0%</strong><span>全部成本占折后售价</span></div>
         </div>
 
+        <div class="total-summary">
+          <div class="total-summary-title">
+            <span>按数量汇总</span>
+            <strong id="quantityLabel">共 1 件</strong>
+          </div>
+          <div class="total-summary-grid">
+            <div><span>总商品原价</span><strong id="totalListPrice">$0.00</strong></div>
+            <div><span>总成交额</span><strong id="totalSalePrice">$0.00</strong></div>
+            <div><span>总成本</span><strong id="totalCost">$0.00</strong></div>
+            <div><span>总利润</span><strong id="totalProfit">$0.00</strong></div>
+          </div>
+          <div class="total-summary-cny">
+            <div><span>总成交额人民币</span><strong id="totalSalePriceCny">¥0.00</strong></div>
+            <div><span>总利润人民币</span><strong id="totalProfitCny">约 ¥0.00</strong></div>
+          </div>
+        </div>
+
         <div class="breakdown" aria-labelledby="breakdownTitle">
           <div class="breakdown-title"><h3 id="breakdownTitle">每单资金去向</h3><span id="salePriceLabel">成交价 $0.00</span></div>
           <div class="stacked-bar" id="stackedBar" aria-hidden="true">
-            <span class="bar-cost"></span><span class="bar-shipping"></span><span class="bar-fee"></span><span class="bar-profit"></span>
+            <span class="bar-cost"></span><span class="bar-shipping"></span><span class="bar-sst"></span><span class="bar-fee"></span><span class="bar-profit"></span>
           </div>
           <dl>
             <div><dt><i class="legend cost"></i>固定成本</dt><dd id="costValue">$0.00</dd></div>
             <div><dt><i class="legend shipping"></i>跨境物流</dt><dd id="shippingValue">$0.00</dd></div>
+            <div><dt><i class="legend sst"></i>尾程运费 SST</dt><dd id="shippingSstValue">$0.00</dd></div>
             <div><dt><i class="legend fee"></i>平台及经营费</dt><dd id="feeValue">$0.00</dd></div>
             <div><dt><i class="legend profit"></i>目标利润</dt><dd id="profitBreakdown">$0.00</dd></div>
           </dl>
